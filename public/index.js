@@ -29,7 +29,7 @@ function HeatMapContainer({ data }) {
     setChecked((isChecked) => !isChecked);
   };
 
-  const [selectedValue, setSelectedValue] = useState(12);
+  const [selectedValue, setSelectedValue] = useState(24);
 
   const handleDropdownChange = (event) => {
     const newValue = Number(event.target.value);
@@ -85,10 +85,11 @@ HeatMapContainer.propTypes = {
 
 export default HeatMapContainer;
 
-const ColorfulDot = ({ number, maxNumber, isInfinity }) => {
+const ColorfulDot = ({ dates, maxNumber, isInfinity }) => {
+  const length = dates.length;
   const color = isInfinity
-    ? getGradientColorHex(number, maxNumber)
-    : chooseColor(number, maxNumber);
+    ? getGradientColorHex(length, maxNumber)
+    : chooseColor(length, maxNumber);
 
   const dotStyle = {
     width: "12px",
@@ -98,7 +99,7 @@ const ColorfulDot = ({ number, maxNumber, isInfinity }) => {
     display: "inline-block",
   };
 
-  return <div style={dotStyle}></div>;
+  return <div style={dotStyle} title={dates}></div>;
 };
 
 const HeatmapChart = ({ dates, segmentsPerDay, isInfinity }) => {
@@ -110,7 +111,7 @@ const HeatmapChart = ({ dates, segmentsPerDay, isInfinity }) => {
       {day.map((value, segmentIndex) => (
         <td key={segmentIndex} style={{ textAlign: "center" }}>
           <ColorfulDot
-            number={value}
+            dates={value}
             maxNumber={maxValue}
             isInfinity={isInfinity}
           ></ColorfulDot>

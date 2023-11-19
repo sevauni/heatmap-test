@@ -22,5 +22,6 @@
     "start": "webpack serve --hot --inline --mode development"
   },
   "dependencies": {
+    "dayjs": "^1.11.10"
   }
 }

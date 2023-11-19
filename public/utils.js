@@ -1,3 +1,5 @@
+import * as dayjs from "dayjs";
+
 export function getGradientColorHex(currentValue, maxValue) {
   const ratio = currentValue / maxValue;
 
@@ -26,12 +28,26 @@ export function getHourLabel(segmentIndex, segmentsPerDay) {
 }
 
 export function chooseColor(currentValue, maxValue) {
-  //debugger
-  const colors = ["#66adfa", "#ffbe2e", "#9acc34", "#ffa22f", "#f23b3b"];
+  const colorRanges = [
+    { color: "#f4f4f4", percentage: 0 },
+    { color: "#c7e1fd", percentage: 2 },
+    { color: "#ffbe2e", percentage: 38 },
+    { color: "#9acc34", percentage: 45 },
+    { color: "#ffa22f", percentage: 50 },
+    { color: "#f23b3b", percentage: 60 },
+  ];
 
-  const colorIndex = Math.floor((currentValue / maxValue) * colors.length);
+  let color = colorRanges[colorRanges.length - 1].color; //fallback color
+  const percentage = (currentValue / maxValue) * 100;
 
-  return colors[colorIndex];
+  for (const range of colorRanges) {
+    if (percentage <= range.percentage) {
+      color = range.color;
+      break;
+    }
+  }
+
+  return color;
 }
 
 export function getDayOfWeek(dayIndex) {
@@ -39,29 +55,54 @@ export function getDayOfWeek(dayIndex) {
   return daysOfWeek[dayIndex];
 }
 
+/**
+ * Generates a frequency array based on the provided dates and segments per day.
+ *
+ * @param {string[]} dates - Array of date strings.
+ * @param {number} segmentsPerDay - Number of segments to divide each day.
+ * @returns {{result: Array<Array<string[]>>, maxValue: number}} - Object containing the result array and the maximum value.
+ */
 export function generateFrequencyArray(dates, segmentsPerDay) {
   const daysOfWeek = 7;
   let maxValue = 0;
 
   const result = Array.from({ length: daysOfWeek }, () =>
-    Array(segmentsPerDay).fill(0)
+    Array(segmentsPerDay).fill([])
   );
 
-  dates.forEach((stringDate, index) => {
-    const date = new Date(stringDate);
+  dates
+    .map((date) => dayjs(date))
 
-    const currentDay = (date.getDay() + 6) % 7;
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const totalMinutes = hours * 60 + minutes;
-    const segmentIndex = Math.floor(
-      totalMinutes / ((24 * 60) / segmentsPerDay)
-    );
+    .forEach((dateObj) => {
+      const currentDay = (dateObj.day() + 6) % 7;
+      // 6 is not a magic number
+      // The expression dateObj.day() + 6) % 7 returns the day of the week of the dateObj date,
+      // shifted by 6 so that Sunday becomes 6, Monday becomes 0, Tuesday becomes 1, and so on.
 
-    result[currentDay][segmentIndex]++;
-    maxValue = Math.max(maxValue, result[currentDay][segmentIndex]);
-  });
+      const segmentIndex = getSegmentNumber(segmentsPerDay, dateObj);
+      const currentValue = result[currentDay][segmentIndex];
+      maxValue = Math.max(maxValue, currentValue.length);
+
+      result[currentDay][segmentIndex] = [
+        ...currentValue,
+        dateObj.format("HH:mm DD/MM/YYYY dddd") + "\n",
+      ];
+    });
+
   return { result, maxValue };
+}
+
+/**
+ * Calculates the segment number for a given date based on the specified amount of parts per day.
+ *
+ * @param {number} amountOfParts - Number of parts to divide each day.
+ * @param {dayjs.Dayjs} dateObj - dayjs object representing the date.
+ * @returns {number} - The calculated segment number for the given date.
+ */
+function getSegmentNumber(amountOfParts, dateObj) {
+  const hoursInSegment = 24 / amountOfParts;
+  const hourOfDay = dateObj.hour();
+  return Math.floor(hourOfDay / hoursInSegment);
 }
 
 export default {
