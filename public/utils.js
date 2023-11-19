@@ -1,8 +1,8 @@
 export function getGradientColorHex(currentValue, maxValue) {
   const ratio = currentValue / maxValue;
 
-  const startColor = [244, 244, 244]; 
-  const endColor = [255, 0, 0]; 
+  const startColor = [244, 244, 244];
+  const endColor = [255, 0, 0];
 
   const interpolatedColor = startColor.map((channel, i) =>
     Math.round(channel + ratio * (endColor[i] - channel))
@@ -26,14 +26,8 @@ export function getHourLabel(segmentIndex, segmentsPerDay) {
 }
 
 export function chooseColor(currentValue, maxValue) {
-  const colors = [
-    "#f4f4f4",
-    "#66adfa",
-    "#ffbe2e",
-    "#9acc34",
-    "#ffa22f",
-    "#f23b3b",
-  ];
+  //debugger
+  const colors = ["#66adfa", "#ffbe2e", "#9acc34", "#ffa22f", "#f23b3b"];
 
   const colorIndex = Math.floor((currentValue / maxValue) * colors.length);
 
@@ -41,21 +35,22 @@ export function chooseColor(currentValue, maxValue) {
 }
 
 export function getDayOfWeek(dayIndex) {
-  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   return daysOfWeek[dayIndex];
 }
 
 export function generateFrequencyArray(dates, segmentsPerDay) {
   const daysOfWeek = 7;
   let maxValue = 0;
+
   const result = Array.from({ length: daysOfWeek }, () =>
     Array(segmentsPerDay).fill(0)
   );
 
-  dates.forEach((stringDate) => {
+  dates.forEach((stringDate, index) => {
     const date = new Date(stringDate);
 
-    const dayOfWeek = date.getDay();
+    const currentDay = (date.getDay() + 6) % 7;
     const hours = date.getHours();
     const minutes = date.getMinutes();
     const totalMinutes = hours * 60 + minutes;
@@ -63,10 +58,9 @@ export function generateFrequencyArray(dates, segmentsPerDay) {
       totalMinutes / ((24 * 60) / segmentsPerDay)
     );
 
-    maxValue = Math.max(maxValue, result[dayOfWeek][segmentIndex]);
-    result[dayOfWeek][segmentIndex]++;
+    result[currentDay][segmentIndex]++;
+    maxValue = Math.max(maxValue, result[currentDay][segmentIndex]);
   });
-
   return { result, maxValue };
 }
 
